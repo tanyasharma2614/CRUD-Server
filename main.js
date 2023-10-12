@@ -3,16 +3,22 @@ const url = require('url');
 const mysql = require('mysql');
 const querystring = require('querystring');
 
-
 const dbPool = mysql.createPool({
-  connectionLimit: 10, 
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'hw5',
+    connectionLimit: 10, 
+    host: 'localhost',
+    user: 'root',
+    password: 'password',
+    database: 'hw5',
 });
 
-const server=http.createServer((req,res)=>{
+function createServer(handleRequest,dbPool){
+    const server=http.createServer((req,res)=>{
+        handleRequest(req,res,dbPool);
+    });
+    return server;
+}
+
+function handleRequest(req,res,dbPool){
     const parsedUrl=url.parse(req.url,true);
     
     if(req.method==='GET' && parsedUrl.pathname==='/get-data'){
@@ -44,7 +50,7 @@ const server=http.createServer((req,res)=>{
         req.on('end',()=>{
             try{
             const postData=JSON.parse(body);
-            if(!postData.FirstName && !postData.LastName && !postData.CustomerID && !postData.Email && !postData.Phone){
+            if(!postData.FirstName || !postData.LastName || !postData.CustomerID || !postData.Email || !postData.Phone){
                 res.writeHead(400,{'Content-Type':'text/plain'});
                 res.end('Bad Request: Required Fields Missing');
                 return;
@@ -85,6 +91,7 @@ const server=http.createServer((req,res)=>{
         }catch(error){
             res.writeHead(400, { 'Content-Type': 'text/plain' });
             res.end('Bad Request: Invalid JSON data');
+            console.log('Error parsing JSON:', error);
         }
         });
     }
@@ -199,9 +206,17 @@ const server=http.createServer((req,res)=>{
         res.end('Not Found');
       }
 
-});
+};
+
+
+const server=createServer(handleRequest);
 
 const port = 8080;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
+
+module.exports={
+    createServer,
+    handleRequest
+};
