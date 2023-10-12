@@ -140,5 +140,101 @@ describe('Server API',()=>{
 
     });
 
+    describe('PUT requests',()=>{
+
+        it('should return 200 when updating a valid record',(done)=>{
+            const postData={
+                CustomerID:'123',
+                FirstName:'T',
+                LastName:'Doe',
+                Email:'johndoe@email.com',
+                Phone:'1234567890',
+                Address:'123 Main St',
+                City:'Anytown',
+                State:'NJ',
+                ZipCode:'12345',
+            };
+            sendRequest('POST','/add-data',postData,(res)=>{
+                expect(res.statusCode).toBe(200);
+                expect(res.body).toBe('Data Added Successfully');
+            });
+            const updatedData={
+                CustomerID:'123',
+                FirstName:'Tanya'
+            }
+            sendRequest('PUT','/update-data',updatedData,(putRes)=>{
+                expect(putRes.statusCode).toBe(200);
+                expect(putRes.body).toBe('Data updated successfully');
+                done();
+            });
+        });
+
+        it('should return 400 Bad Request for PUT request with missing or invalid data',(done)=>{
+            const putData={
+                FirstName:'Tanya'
+            };
+            sendRequest('PUT','/update-data',putData,(res)=>{
+                expect(res.statusCode).toBe(400);
+                expect(res.body).toBe('Bad Request: Required fields missing');
+                done();
+            });
+        });
+
+        it('should return 404 when route is invalid for PUT',(done)=>{
+            sendRequest('PUT','/invalid',null,(res)=>{
+                expect(res.statusCode).toBe(404);
+                expect(res.body).toBe('Not Found');
+                done();
+            });
+        });
+
+    });
+
+    describe('DELETE requests',()=>{
+
+        it('should return 200 when deleting a record with a valid CustomerID',(done)=>{
+            const postData = {
+                CustomerID: '123',
+                FirstName: 'John',
+                LastName: 'Doe',
+                Email: 'johndoe@email.com',
+                Phone: '1234567890',
+            };
+            sendRequest('POST','/add-data',postData,(postRes)=>{
+                expect(postRes.statusCode).toBe(200);
+            });
+            sendRequest('DELETE','/delete-data?CustomerID=123',null,(deleteRes)=>{
+                expect(deleteRes.statusCode).toBe(200);
+                expect(deleteRes.body).toBe('Data deleted successfully');
+                done();
+            });
+        });
+
+        it('should return 400 Bad Request when deleting a record with an invalid Parameter',(done)=>{
+            sendRequest('DELETE','/delete-data?customerId=1',null,(deleteRes)=>{
+                expect(deleteRes.statusCode).toBe(400);
+                expect(deleteRes.body).toBe('Bad Request: CustomerID is missing in the query parameters');
+                done();
+            });
+        });
+
+        it('should return 400 Bad Request when deleting a record with a missing Parameter',(done)=>{
+            sendRequest('DELETE','/delete-data',null,(deleteRes)=>{
+                expect(deleteRes.statusCode).toBe(400);
+                expect(deleteRes.body).toBe('Bad Request: CustomerID is missing in the query parameters');
+                done();
+            });
+        });
+
+        it('should return 404 when route is invalid for DELETE',(done)=>{
+            sendRequest('DELETE','/invalid',null,(res)=>{
+                expect(res.statusCode).toBe(404);
+                expect(res.body).toBe('Not Found');
+                done();
+            });
+        });
+
+    });
+
 })
 

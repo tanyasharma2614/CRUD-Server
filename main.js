@@ -101,6 +101,7 @@ function handleRequest(req,res,dbPool){
         if(!customerID){
             res.writeHead(400,{'Content-Type':'text/plain'});
             res.end('Bad Request: CustomerID is missing in the query parameters');
+            return;
         }
         dbPool.getConnection((err,connection)=>{
             if(err){
