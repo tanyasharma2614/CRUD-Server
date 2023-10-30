@@ -96,33 +96,49 @@ function handleRequest(req,res,dbPool){
         });
     }
 
-    else if(req.method==='DELETE' && parsedUrl.pathname==='/delete-data'){
-        const customerID=parsedUrl.query.CustomerID;
-        if(!customerID){
-            res.writeHead(400,{'Content-Type':'text/plain'});
+    else if (req.method === 'DELETE' && parsedUrl.pathname === '/delete-data') {
+        const customerID = parsedUrl.query.CustomerID;
+        if (!customerID) {
+            res.writeHead(400, { 'Content-Type': 'text/plain' });
             res.end('Bad Request: CustomerID is missing in the query parameters');
             return;
         }
-        dbPool.getConnection((err,connection)=>{
-            if(err){
-                res.writeHead(400,{'Content-Type':'text/plain'});
-                res.end('Internal Server error');
+    
+        const checkSql = 'SELECT CustomerID FROM People WHERE CustomerID = ?';
+        const checkValues = [customerID];
+        dbPool.getConnection((err, connection) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Internal Server Error');
                 return;
             }
-            const sql='DELETE FROM People WHERE CustomerID=?';
-            const values=[customerID];
-            connection.query(sql,values,(err,result)=>{
-                connection.release();
-                if(err){
-                    res.writeHead(500,{'Content-Type':'text/plain'});
+    
+            connection.query(checkSql, checkValues, (checkErr, checkResult) => {
+                if (checkErr) {
+                    connection.release();
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
                     res.end('Internal Server Error');
-                }else{
-                    res.writeHead(200,{'Content-Type':'text/plain'});
-                    res.end('Data deleted successfully');
+                } else if (checkResult.length === 0) {
+                    connection.release();
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('Data not found: CustomerID does not exist');
+                } else {
+                    const sql = 'DELETE FROM People WHERE CustomerID = ?';
+                    const values = [customerID];
+                    connection.query(sql, values, (err, result) => {
+                        connection.release();
+                        if (err) {
+                            res.writeHead(500, { 'Content-Type': 'text/plain' });
+                            res.end('Internal Server Error');
+                        } else {
+                            res.writeHead(200, { 'Content-Type': 'text/plain' });
+                            res.end('Data deleted successfully');
+                        }
+                    });
                 }
             });
         });
-    }
+    }    
 
     else if(req.method==='PUT' && parsedUrl.pathname==='/update-data'){
         let body='';

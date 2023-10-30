@@ -249,6 +249,17 @@ describe('Server API',()=>{
             });
         });
 
+        it('should return 404 when deleting a non-existent record', (done) => {
+            const nonExistentCustomerID = '999';
+        
+            sendRequest('DELETE', `/delete-data?CustomerID=${nonExistentCustomerID}`, null, (res) => {
+                expect(res.statusCode).toBe(404);
+                expect(res.body).toBe('Data not found: CustomerID does not exist');
+                done();
+            });
+        });
+        
+
     });
 
 })
