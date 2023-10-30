@@ -1,6 +1,7 @@
 const http=require('http');
 const {createServer,handleRequest}=require('../main');
 const mysql=require('mysql');
+const async=require('async');
 
 
 const dbConfig={
@@ -307,6 +308,39 @@ describe('Server API',()=>{
         });
         
 
+    });
+
+    it('should handle multiple concurrent requests without errors', (done) => {
+        const concurrentRequests = 5; 
+    
+        const sendSingleRequest = (callback) => {
+            const requestDetails = {
+                method: 'GET', 
+                path: '/get-data',
+                postData: null, 
+            };
+    
+            sendRequest(requestDetails.method, requestDetails.path, requestDetails.postData, (res) => {
+                callback(null, res.statusCode); 
+            });
+        };
+    
+        async.times(concurrentRequests, (n, next) => {
+            sendSingleRequest((err, statusCode) => {
+                if (err) {
+                    return next(err);
+                }
+                next(null, statusCode);
+            });
+        }, (err, statusCodes) => {
+            if (err) {
+                done.fail(err);
+            } else {
+                const allRequestsSuccessful = statusCodes.every((code) => code === 200);
+                expect(allRequestsSuccessful).toBe(true);
+                done();
+            }
+        });
     });
 
 })

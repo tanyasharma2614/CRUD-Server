@@ -3,5 +3,8 @@
     "body-parser": "^1.20.2",
     "jasmine": "^5.1.0",
     "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "async": "^3.2.4"
   }
 }
