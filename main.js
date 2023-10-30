@@ -22,19 +22,26 @@ function handleRequest(req,res,dbPool){
     const parsedUrl=url.parse(req.url,true);
     
     if(req.method==='GET' && parsedUrl.pathname==='/get-data'){
+        const customerID=parsedUrl.query.CustomerID;
         dbPool.getConnection((err,connection)=>{
             if(err){
                 res.writeHead(500,{'Content-Type':'text/plain'});
                 res.end('Internal Server Error');
             }
 
-            const sql= `SELECT * FROM People`;
-            connection.query(sql,(err,result)=>{
+            const sql= customerID ?`SELECT * FROM People WHERE CustomerID=?` :`SELECT * FROM People`;
+            let values=[customerID];
+            connection.query(sql,values,(err,result)=>{
                 connection.release();
                 if(err){
                     res.writeHead(500,{'Content-Type':'text/plain'});
                     res.end('Internal Server Error');
-                }else{
+                }
+                else if(customerID && result.length===0){
+                    res.writeHead(404,{'Content-Type':'text/plain'});
+                    res.end('Record not found');
+                }
+                else{
                     res.writeHead(200,{'Content-Type':'application/json'});
                     res.end(JSON.stringify(result));
                 }

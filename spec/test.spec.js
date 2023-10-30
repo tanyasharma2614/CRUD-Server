@@ -73,7 +73,7 @@ describe('Server API',()=>{
 
     describe('GET requests',()=>{
 
-        it('should return 200 when retrieving records',(done)=>{
+        it('should return 200 when retrieving all records',(done)=>{
             sendRequest('GET','/get-data',null,(res)=>{
                 expect(res.statusCode).toBe(200);
                 expect(res.headers['content-type']).toContain('application/json');
@@ -89,6 +89,53 @@ describe('Server API',()=>{
             });
         });
 
+        it('should return 200 when retrieving a specific record that exists',(done)=>{
+            const postData={
+                CustomerID:'123',
+                FirstName:'T',
+                LastName:'Doe',
+                Email:'johndoe@email.com',
+                Phone:'1234567890',
+                Address:'123 Main St',
+                City:'Anytown',
+                State:'NJ',
+                ZipCode:'12345',
+            };
+            sendRequest('POST','/add-data',postData,(res)=>{
+                expect(res.statusCode).toBe(200);
+                expect(res.body).toBe('Data Added Successfully');
+
+                sendRequest('GET','/get-data?CustomerID=123',null,(getRes)=>{
+                    expect(getRes.statusCode).toBe(200);
+                    expect(getRes.headers['content-type']).toContain('application/json');
+                    done();
+                });
+            });
+        });
+
+        it('should return 404 when retrieving a specific record that does not exist',(done)=>{
+            const postData={
+                CustomerID:'123',
+                FirstName:'T',
+                LastName:'Doe',
+                Email:'johndoe@email.com',
+                Phone:'1234567890',
+                Address:'123 Main St',
+                City:'Anytown',
+                State:'NJ',
+                ZipCode:'12345',
+            };
+            sendRequest('POST','/add-data',postData,(res)=>{
+                expect(res.statusCode).toBe(200);
+                expect(res.body).toBe('Data Added Successfully');
+
+                sendRequest('GET','/get-data?CustomerID=1234',null,(getRes)=>{
+                    expect(getRes.statusCode).toBe(404);
+                    expect(getRes.body).toBe('Record not found');
+                    done();
+                });
+            });
+        });
     });
 
     describe('POST requests',()=>{
@@ -96,7 +143,7 @@ describe('Server API',()=>{
         it('should return 200 when adding a new record to the database with valid POST data',(done)=>{
             const postData={
                 CustomerID:'123',
-                FirstName:'T',
+                FirstName:'T', 
                 LastName:'Doe',
                 Email:'johndoe@email.com',
                 Phone:'1234567890',
