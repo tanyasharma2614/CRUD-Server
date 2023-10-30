@@ -265,12 +265,13 @@ describe('Server API',()=>{
             };
             sendRequest('POST','/add-data',postData,(postRes)=>{
                 expect(postRes.statusCode).toBe(200);
+                sendRequest('DELETE','/delete-data?CustomerID=123',null,(deleteRes)=>{
+                    expect(deleteRes.statusCode).toBe(200);
+                    expect(deleteRes.body).toBe('Data deleted successfully');
+                    done();
+                });
             });
-            sendRequest('DELETE','/delete-data?CustomerID=123',null,(deleteRes)=>{
-                expect(deleteRes.statusCode).toBe(200);
-                expect(deleteRes.body).toBe('Data deleted successfully');
-                done();
-            });
+           
         });
 
         it('should return 400 Bad Request when deleting a record with an invalid Parameter',(done)=>{
