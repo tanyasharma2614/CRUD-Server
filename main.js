@@ -57,6 +57,48 @@ function handleRequest(req,res,dbPool){
         req.on('end',()=>{
             try{
             const postData=JSON.parse(body);
+            if(Array.isArray(postData)){
+                const records=postData;
+                if (records.some(record => !record.FirstName || !record.LastName || !record.CustomerID || !record.Email || !record.Phone)) {
+                    res.writeHead(400, { 'Content-Type': 'text/plain' });
+                    res.end('Bad Request: Required Fields Missing');
+                    return;
+                }
+                const values = records.map(record => [
+                    record.CustomerID,
+                    record.FirstName,
+                    record.LastName,
+                    record.Email,
+                    record.Phone || null,
+                    record.Address || null,
+                    record.City || null,
+                    record.State || null,
+                    record.ZipCode || null,
+                    new Date(),
+                ]);
+
+                dbPool.getConnection((err, connection) => {
+                    if (err) {
+                        res.writeHead(500, { 'Content-Type': 'text/plain' });
+                        res.end('Internal Server Error');
+                        return;
+                    }
+
+                    const sql = 'INSERT INTO People (CustomerID,FirstName, LastName, Email, Phone, Address, City, State, ZipCode, RegistrationDate) VALUES ?';
+                    connection.query(sql, [values], (err, result) => {
+                        connection.release();
+                        if (err) {
+                            res.writeHead(500, { 'Content-Type': 'text/plain' });
+                            res.end('Internal Server Error');
+                            return;
+                        } else {
+                            res.writeHead(200, { 'Content-Type': 'text/plain' });
+                            res.end('Data Added Successfully');
+                            return;
+                        }
+                    });
+                });
+            }else{
             if(!postData.FirstName || !postData.LastName || !postData.CustomerID || !postData.Email || !postData.Phone){
                 res.writeHead(400,{'Content-Type':'text/plain'});
                 res.end('Bad Request: Required Fields Missing');
@@ -95,6 +137,7 @@ function handleRequest(req,res,dbPool){
                     }
                 });
             });
+        }
         }catch(error){
             res.writeHead(400, { 'Content-Type': 'text/plain' });
             res.end('Bad Request: Invalid JSON data');

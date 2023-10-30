@@ -161,6 +161,39 @@ describe('Server API',()=>{
 
         });
 
+        it('should return 200 when adding a multiple new records to the database with valid POST data',(done)=>{
+            const postData = [
+                {
+                    CustomerID: '123',
+                    FirstName: 'John',
+                    LastName: 'Doe',
+                    Email: 'johndoe@email.com',
+                    Phone: '1234567890',
+                    Address: '123 Main St',
+                    City: 'Anytown',
+                    State: 'NJ',
+                    ZipCode: '12345',
+                },
+                {
+                    CustomerID: '124',
+                    FirstName: 'Jane',
+                    LastName: 'Smith',
+                    Email: 'janesmith@email.com',
+                    Phone: '9876543210',
+                    Address: '456 Elm St',
+                    City: 'Othertown',
+                    State: 'NY',
+                    ZipCode: '54321',
+                }
+            ];
+            sendRequest('POST','/add-data',postData,(res)=>{
+                expect(res.statusCode).toBe(200);
+                expect(res.body).toBe('Data Added Successfully');
+                done();
+            });
+
+        });
+
         it('should return 400 Bad Request for a POST request with missing data',(done)=>{
             const postData={ };
             sendRequest('POST','/add-data',postData,(res)=>{
