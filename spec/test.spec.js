@@ -144,7 +144,7 @@ describe('Server API',()=>{
 
         it('should return 200 when updating a valid record',(done)=>{
             const postData={
-                CustomerID:'123',
+                CustomerID:'29',
                 FirstName:'T',
                 LastName:'Doe',
                 Email:'johndoe@email.com',
@@ -157,16 +157,17 @@ describe('Server API',()=>{
             sendRequest('POST','/add-data',postData,(res)=>{
                 expect(res.statusCode).toBe(200);
                 expect(res.body).toBe('Data Added Successfully');
+                const updatedData={
+                    CustomerID:'29',
+                    FirstName:'Tanya'
+                }
+                sendRequest('PUT','/update-data',updatedData,(putRes)=>{
+                    expect(putRes.statusCode).toBe(200);
+                    expect(putRes.body).toBe('Data updated successfully');
+                    done();
+                });
             });
-            const updatedData={
-                CustomerID:'123',
-                FirstName:'Tanya'
-            }
-            sendRequest('PUT','/update-data',updatedData,(putRes)=>{
-                expect(putRes.statusCode).toBe(200);
-                expect(putRes.body).toBe('Data updated successfully');
-                done();
-            });
+            
         });
 
         it('should return 400 Bad Request for PUT request with missing or invalid data',(done)=>{
@@ -187,6 +188,20 @@ describe('Server API',()=>{
                 done();
             });
         });
+
+        it('should return 404 when updating a non-existent record', (done) => {
+            const postData = {
+                CustomerID: '999', 
+                FirstName: 'UpdatedJohn',
+            };
+        
+            sendRequest('PUT', '/update-data', postData, (res) => {
+                expect(res.statusCode).toBe(404);
+                expect(res.body).toBe('Record not found');
+                done();
+            });
+        });
+        
 
     });
 

@@ -144,56 +144,76 @@ function handleRequest(req,res,dbPool){
                         res.writeHead(500,{'Content-Type':'text/plain'});
                         res.end('Internal server error');
                         return;
-                    }
-
-                    let sql='UPDATE People SET ';
-                    const values=[];
-                    if(postData.FirstName){
-                        sql+=' FirstName=?,';
-                        values.push(postData.FirstName);
-                    }
-                    if(postData.LastName){
-                        sql+=' LastName=?,';
-                        values.push(postData.LastName);
-                    }
-                    if (postData.Email) {
-                        sql += ' Email = ?,';
-                        values.push(postData.Email);
-                    }
-                    if (postData.Phone) {
-                        sql += ' Phone = ?,';
-                        values.push(postData.Phone);
-                    }
-                    if (postData.Address) {
-                        sql += ' Address = ?,';
-                        values.push(postData.Address);
-                    }
-                    if (postData.City) {
-                        sql += ' City = ?,';
-                        values.push(postData.City);
-                    }
-                    if (postData.State) {
-                        sql += ' State = ?,';
-                        values.push(postData.State);
-                    }
-                    if (postData.ZipCode) {
-                        sql += ' ZipCode = ?,';
-                        values.push(postData.ZipCode);
-                    }
-                    sql=sql.slice(0,-1)+'WHERE CustomerID=?';
-                    values.push(postData.CustomerID);
-
-                    connection.query(sql,values,(err,result)=>{
-                        connection.release();
-                        if(err){
+                    } 
+                    const checkrecordSQL='SELECT * FROM People WHERE CustomerID=?';
+                    connection.query(checkrecordSQL,[postData.CustomerID],(checkErr,checkResult)=>{
+                        if(checkErr){
+                            connection.release();
                             res.writeHead(500,{'Content-Type':'text/plain'});
-                            res.end('Internal server error');
+                            res.end('Internal Server Error');
+                            return;
+                        }else if(checkResult.length===0){
+                            connection.release();
+                            res.writeHead(404,{'Content-Type':'text/plain'});
+                            res.end('Record not found');
+                            return;
                         }else{
-                            res.writeHead(200,{'Content-Type':'text/plain'});
-                            res.end('Data updated successfully');
+            
+                                let sql='UPDATE People SET ';
+                                const values=[];
+                                if(postData.FirstName){
+                                    sql+=' FirstName=?,';
+                                    values.push(postData.FirstName);
+                                }
+                                if(postData.LastName){
+                                    sql+=' LastName=?,';
+                                    values.push(postData.LastName);
+                                }
+                                if (postData.Email) {
+                                    sql += ' Email = ?,';
+                                    values.push(postData.Email);
+                                }
+                                if (postData.Phone) {
+                                    sql += ' Phone = ?,';
+                                    values.push(postData.Phone);
+                                }
+                                if (postData.Address) {
+                                    sql += ' Address = ?,';
+                                    values.push(postData.Address);
+                                }
+                                if (postData.City) {
+                                    sql += ' City = ?,';
+                                    values.push(postData.City);
+                                }
+                                if (postData.State) {
+                                    sql += ' State = ?,';
+                                    values.push(postData.State);
+                                }
+                                if (postData.ZipCode) {
+                                    sql += ' ZipCode = ?,';
+                                    values.push(postData.ZipCode);
+                                }
+                                sql=sql.slice(0,-1)+'WHERE CustomerID=?';
+                                values.push(postData.CustomerID);
+            
+                                connection.query(sql,values,(err,result)=>{
+                                    connection.release();
+                                    if(err){
+                                        res.writeHead(500,{'Content-Type':'text/plain'});
+                                        res.end('Internal server error');
+                                        return;
+                                    }else{
+                                        res.writeHead(200,{'Content-Type':'text/plain'});
+                                        res.end('Data updated successfully');
+                                        return;
+                                    }
+                                });
+                            // });
                         }
                     });
                 });
+
+                
             }catch(error){
                 res.writeHead(400,{'Content-Type':'text/plain'});
                 res.end('Bad Request: Invalid JSON data');
@@ -210,7 +230,7 @@ function handleRequest(req,res,dbPool){
 };
 
 
-const server=createServer(handleRequest);
+const server=createServer(handleRequest,dbPool);
 
 const port = 8080;
 server.listen(port, () => {
